@@ -114,38 +114,38 @@ class ClientArea(wx.Panel):
         dc = wx.ClientDC(self.panel)
         pos = e.GetLogicalPosition(dc)
         print('Left button clicked at' + str(pos))
-        # find root position of box contining click
-        rootPos = wx.Point(0, 0)
         x = 0
         y = 0
 
-        for i in range(0, len(self.currentGrid[0])):
-            if pos.x >= (i * self.boxSize) and pos.x <= ((i+1) * self.boxSize):
-                rootPos.x = i * self.boxSize
-                x = i
-        for i in range(0, len(self.currentGrid)):
-            if pos.y >= (i * self.boxSize) and pos.y <= ((i+1) * self.boxSize):
-                rootPos.y = i * self.boxSize
-                y = i
+        x = int(pos.x / self.boxSize)
+        y = int(pos.y / self.boxSize)
+        
         print('x = ' + str(x) + ', y = ' + str(y))
 
-        # if the current array contains a box already
         if self.currentGrid[y][x] == True:
-            # clear it
             self.currentGrid[y][x] = False    
-        # else
-            # set that array element to true
+        else:
             self.currentGrid[y][x] = True
 
         print('Array indexes are (' + str(x) + ', ' + str(y) + ')')
-        print('Root position is ' + str(rootPos))
-
+        self.Refresh()
+        
     def onPaint(self, e):
 
         dc = wx.PaintDC(self)
         self.DrawGrid(dc)
         if not self.initialized:
             self.initData(dc)
+            self.initialized = True
+        self.DrawLife(dc)
+
+    def DrawLife(self, dc):
+        for y in range(0, len(self.currentGrid)):
+            for x in range(0, len(self.currentGrid[y])):
+                if self.currentGrid[y][x] == True:
+                    # draw rectange in this position
+                    dc.SetBrush(wx.Brush('#ffffff'))
+                    dc.DrawRectangle(x * self.boxSize, y * self.boxSize, self.boxSize, self.boxSize)
 
     def DrawGrid(self, dc):
         # determine dimentions of client area
