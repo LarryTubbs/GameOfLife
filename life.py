@@ -28,9 +28,9 @@ class MainFrame(wx.Frame):
         st1 = wx.StaticText(self.panel, label='Square Size')
         st1.SetFont(font)
         hbox1.Add(st1, flag=wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, border=8)
-        self.tcself.boxSize = wx.TextCtrl(self.panel)
-        self.tcself.boxSize.Value = "20"
-        hbox1.Add(self.tcself.boxSize, flag=wx.RIGHT, proportion=0, border=8)
+        self.tcBoxSize = wx.TextCtrl(self.panel)
+        self.tcBoxSize.Value = "20"
+        hbox1.Add(self.tcBoxSize, flag=wx.RIGHT, proportion=0, border=8)
 
         # reset button
         resetButton = wx.Button(self.panel, label="Reset")
@@ -60,7 +60,7 @@ class MainFrame(wx.Frame):
         
         vbox.Add(self.sb, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, border=0)
 
-        self.panel.Bind(wx.EVT_TEXT, self.onChangeself.boxSize, self.tcself.boxSize)
+        self.panel.Bind(wx.EVT_TEXT, self.onChangeBoxSize, self.tcBoxSize)
         self.panel.Bind(wx.EVT_LEFT_UP, self.onSquareClick, self.ca)
         self.panel.Bind(wx.EVT_BUTTON, self.onPauseClick, pauseButton)
         self.panel.Bind(wx.EVT_BUTTON, self.onResetClick, resetButton)
@@ -78,9 +78,9 @@ class MainFrame(wx.Frame):
     def onResetClick(self, e):
         self.sb.SetStatusText('Ready')
 
-    def onChangeself.boxSize(self, e):
+    def onChangeBoxSize(self, e):
         try:
-            self.ca.SetBoxSize(int(self.tcself.boxSize.Value))
+            self.ca.SetBoxSize(int(self.tcBoxSize.Value))
         except ValueError:
             pass
 
@@ -97,13 +97,14 @@ class ClientArea(wx.Panel):
     def initData(self, dc, preserve=False):
         self.currentGrid = [[]]
         self.nextGrid = [[]]
+        dc = wx.ClientDC(self)
         clientSize = dc.GetSize()
         rows = int(clientSize.y / self.boxSize)
         cols = int(clientSize.x / self.boxSize)
-        for y in range(0, rows - 1):
+        for y in range(0, rows):
             self.currentGrid.insert(y, [])
             self.nextGrid.insert(y, [])
-            for x in range(0, cols - 1):
+            for x in range(0, cols):
                 self.currentGrid[y].insert(x,False)
                 self.nextGrid[y].insert(x, False)
         print('Data table is ' + str(len(self.currentGrid)) + ' rows, and ' + str(len(self.currentGrid[0])) + ' columns.')
@@ -126,14 +127,15 @@ class ClientArea(wx.Panel):
             if pos.y >= (i * self.boxSize) and pos.y <= ((i+1) * self.boxSize):
                 rootPos.y = i * self.boxSize
                 y = i
+        print('x = ' + str(x) + ', y = ' + str(y))
 
         # if the current array contains a box already
-        if self.currentGrid[x][y] == True:
+        if self.currentGrid[y][x] == True:
             # clear it
-            self.currentGrid[x][y] = False    
+            self.currentGrid[y][x] = False    
         # else
             # set that array element to true
-            self.currentGrid[x][y] = True
+            self.currentGrid[y][x] = True
 
         print('Array indexes are (' + str(x) + ', ' + str(y) + ')')
         print('Root position is ' + str(rootPos))
@@ -166,6 +168,7 @@ class ClientArea(wx.Panel):
     def DrawSquares(self, dc):
         # walk the array drawing a filled square at every "true" position
         # todo implement this!
+        print('placeholder')
 
     def SetBoxSize(self, size):
         self.boxSize = size
