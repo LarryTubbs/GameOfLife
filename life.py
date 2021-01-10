@@ -2,11 +2,16 @@
 
 from os import curdir
 from sys import flags
+from copy import deepcopy
+import time, threading
+
 import wx
 from wx.core import BoxSizer, CONTROL_CURRENT, FileDialogNameStr, PropagateOnce, RadioBoxNameStr, Size
-from copy import deepcopy
+
 
 class MainFrame(wx.Frame):
+
+    ID_TIMER = 1
 
     def __init__(self, parent, title):
         super(MainFrame, self).__init__(parent, title=title, size=(600,600))
@@ -17,6 +22,8 @@ class MainFrame(wx.Frame):
     def InitUI(self):
 
         self.panel = wx.Panel(self)
+
+        self.timer = wx.Timer(self, MainFrame.ID_TIMER)
 
         font = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT)
 
@@ -62,27 +69,40 @@ class MainFrame(wx.Frame):
         vbox.Add(self.sb, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, border=0)
 
         self.generation = 0
+        self.speed = 1000
 
         self.panel.Bind(wx.EVT_TEXT, self.onChangeBoxSize, self.tcBoxSize)
         self.panel.Bind(wx.EVT_LEFT_UP, self.onSquareClick, self.ca)
+        self.panel.Bind(wx.EVT_BUTTON, self.onStartClick, startButton)
         self.panel.Bind(wx.EVT_BUTTON, self.onPauseClick, pauseButton)
         self.panel.Bind(wx.EVT_BUTTON, self.onResetClick, resetButton)
         self.panel.Bind(wx.EVT_BUTTON, self.onStepClick, stepButton)
+        self.Bind(wx.EVT_TIMER, self.onTimer, id=MainFrame.ID_TIMER)
 
         self.panel.SetSizer(vbox)
 
-    def onStepClick(self, e):
+    def onTimer(self, e):
+        self.advanceGeneration()
+
+    def onStartClick(self, e):
+        self.timer.Start(self.speed)
+
+    def advanceGeneration(self):
         self.ca.GenerateLife()
         self.generation += 1
         self.sb.SetStatusText(f"Generation {self.generation}")
+
+    def onStepClick(self, e):
+        self.advanceGeneration()
 
     def onSquareClick(self, e):
         self.sb.SetStatusText('Left button clicked at' + str(e.GetLogicalPosition(wx.ClientDC(self.panel))))
 
     def onPauseClick(self, e):
-        self.sb.SetStatusText('Pause Button Clicked')
+        self.timer.Stop()
 
     def onResetClick(self, e):
+        self.timer.Stop()
         self.ca.Reset()
         self.generation = 0
         self.sb.SetStatusText('Ready')
