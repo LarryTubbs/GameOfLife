@@ -3,7 +3,8 @@
 from os import curdir
 from sys import flags
 import wx
-from wx.core import BoxSizer, FileDialogNameStr, PropagateOnce, RadioBoxNameStr, Size
+from wx.core import BoxSizer, CONTROL_CURRENT, FileDialogNameStr, PropagateOnce, RadioBoxNameStr, Size
+from copy import deepcopy
 
 class MainFrame(wx.Frame):
 
@@ -60,14 +61,20 @@ class MainFrame(wx.Frame):
         
         vbox.Add(self.sb, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, border=0)
 
+        self.generation = 0
+
         self.panel.Bind(wx.EVT_TEXT, self.onChangeBoxSize, self.tcBoxSize)
         self.panel.Bind(wx.EVT_LEFT_UP, self.onSquareClick, self.ca)
         self.panel.Bind(wx.EVT_BUTTON, self.onPauseClick, pauseButton)
         self.panel.Bind(wx.EVT_BUTTON, self.onResetClick, resetButton)
-        
+        self.panel.Bind(wx.EVT_BUTTON, self.onStepClick, stepButton)
+
         self.panel.SetSizer(vbox)
 
-    
+    def onStepClick(self, e):
+        self.ca.GenerateLife()
+        self.generation += 1
+        self.sb.SetStatusText(f"Generation {self.generation}")
 
     def onSquareClick(self, e):
         self.sb.SetStatusText('Left button clicked at' + str(e.GetLogicalPosition(wx.ClientDC(self.panel))))
@@ -76,6 +83,8 @@ class MainFrame(wx.Frame):
         self.sb.SetStatusText('Pause Button Clicked')
 
     def onResetClick(self, e):
+        self.ca.Reset()
+        self.generation = 0
         self.sb.SetStatusText('Ready')
 
     def onChangeBoxSize(self, e):
@@ -92,15 +101,20 @@ class ClientArea(wx.Panel):
         self.Bind(wx.EVT_LEFT_UP, self.onSquareClick)
         self.boxSize = 20
         self.initialized = False
+
+    def onSize(self):
+        pass       
         
-        
-    def initData(self, dc, preserve=False):
-        self.currentGrid = [[]]
-        self.nextGrid = [[]]
-        dc = wx.ClientDC(self)
-        clientSize = dc.GetSize()
-        rows = int(clientSize.y / self.boxSize)
-        cols = int(clientSize.x / self.boxSize)
+    def initData(self, preserve=False):
+        if preserve == False:
+            self.currentGrid = [[]]
+            self.nextGrid = [[]]
+        else:
+            return    
+        dc = wx.ScreenDC()
+        screenSize = dc.GetSize()
+        rows = int(screenSize.y / self.boxSize)
+        cols = int(screenSize.x / self.boxSize)
         for y in range(0, rows):
             self.currentGrid.insert(y, [])
             self.nextGrid.insert(y, [])
@@ -108,7 +122,7 @@ class ClientArea(wx.Panel):
                 self.currentGrid[y].insert(x,False)
                 self.nextGrid[y].insert(x, False)
         print('Data table is ' + str(len(self.currentGrid)) + ' rows, and ' + str(len(self.currentGrid[0])) + ' columns.')
-        #todo: add support for preserve
+        
 
     def onSquareClick(self, e):
         dc = wx.ClientDC(self.panel)
@@ -135,9 +149,15 @@ class ClientArea(wx.Panel):
         dc = wx.PaintDC(self)
         self.DrawGrid(dc)
         if not self.initialized:
-            self.initData(dc)
+            self.initData()
             self.initialized = True
+        else:
+            self.initData(preserve=True)
         self.DrawLife(dc)
+
+    def Reset(self):
+        self.initData()
+        self.Refresh()
 
     def DrawLife(self, dc):
         for y in range(0, len(self.currentGrid)):
@@ -146,6 +166,85 @@ class ClientArea(wx.Panel):
                     # draw rectange in this position
                     dc.SetBrush(wx.Brush('#ffffff'))
                     dc.DrawRectangle(x * self.boxSize, y * self.boxSize, self.boxSize, self.boxSize)
+
+    def GenerateLife(self):
+        for y in range(0, len(self.currentGrid)):
+            for x in range(0, len(self.currentGrid[y])):
+                self.nextGrid[y][x] = False
+                n = self.CountNeighbors(y, x)
+                if self.currentGrid[y][x] == False:
+                    if n == 3:
+                        self.nextGrid[y][x] = True
+                    else:
+                        self.nextGrid[y][x] = False
+                else:
+                    if n < 2 or n > 3:
+                        self.nextGrid[y][x] = False
+                    else:
+                        self.nextGrid[y][x] = True
+        self.currentGrid = deepcopy(self.nextGrid)
+        self.Refresh()
+
+
+    def CountNeighbors(self, y, x):
+        c = 0
+        try:
+            #upper left
+            if self.currentGrid[y-1][x-1] == True:
+                c += 1
+        except IndexError:
+            pass
+
+        try:
+            #upper middle
+            if self.currentGrid[y-1][x] == True:
+                c += 1  
+        except IndexError:
+            pass
+
+        try:
+            #upper right
+            if self.currentGrid[y-1][x+1] == True:
+                c += 1 
+        except IndexError:
+            pass
+
+        try:   
+            #left
+            if self.currentGrid[y][x-1] == True:
+                c += 1
+        except IndexError:
+            pass
+
+        try:    
+            #right
+            if self.currentGrid[y][x+1] == True:
+                c += 1 
+        except IndexError:
+            pass
+
+        try:   
+            #lower left
+            if self.currentGrid[y+1][x-1] == True:
+                c += 1
+        except IndexError:
+            pass
+
+        try:    
+            #lower middle
+            if self.currentGrid[y+1][x] == True:
+                c += 1
+        except IndexError:
+            pass
+
+        try:    
+            #lower right
+            if self.currentGrid[y+1][x+1] == True:
+                c += 1
+        except IndexError:
+            pass
+
+        return c
 
     def DrawGrid(self, dc):
         # determine dimentions of client area
