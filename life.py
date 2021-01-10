@@ -121,9 +121,6 @@ class ClientArea(wx.Panel):
         self.boxSize = 20
         self.initialized = False
 
-    def onSize(self):
-        pass       
-        
     def initData(self, preserve=False):
         if preserve == False:
             self.currentGrid = [[]]
@@ -140,27 +137,27 @@ class ClientArea(wx.Panel):
             for x in range(0, cols):
                 self.currentGrid[y].insert(x,False)
                 self.nextGrid[y].insert(x, False)
-        print('Data table is ' + str(len(self.currentGrid)) + ' rows, and ' + str(len(self.currentGrid[0])) + ' columns.')
+        # print('Data table is ' + str(len(self.currentGrid)) + ' rows, and ' + str(len(self.currentGrid[0])) + ' columns.')
         
 
     def onSquareClick(self, e):
         dc = wx.ClientDC(self.panel)
         pos = e.GetLogicalPosition(dc)
-        print('Left button clicked at' + str(pos))
+        # print('Left button clicked at' + str(pos))
         x = 0
         y = 0
 
         x = int(pos.x / self.boxSize)
         y = int(pos.y / self.boxSize)
         
-        print('x = ' + str(x) + ', y = ' + str(y))
+        # print('x = ' + str(x) + ', y = ' + str(y))
 
         if self.currentGrid[y][x] == True:
             self.currentGrid[y][x] = False    
         else:
             self.currentGrid[y][x] = True
 
-        print('Array indexes are (' + str(x) + ', ' + str(y) + ')')
+        # print('Array indexes are (' + str(x) + ', ' + str(y) + ')')
         self.Refresh()
         
     def onPaint(self, e):
@@ -203,7 +200,6 @@ class ClientArea(wx.Panel):
                         self.nextGrid[y][x] = True
         self.currentGrid = deepcopy(self.nextGrid)
         self.Refresh()
-
 
     def CountNeighbors(self, y, x):
         c = 0
@@ -282,11 +278,6 @@ class ClientArea(wx.Panel):
         for y in range (1, int(clientSize.y / self.boxSize) + 1):
             # draw horizontal lines
             dc.DrawLine(0, height * y, clientSize.x, height * y)
-
-    def DrawSquares(self, dc):
-        # walk the array drawing a filled square at every "true" position
-        # todo implement this!
-        print('placeholder')
 
     def SetBoxSize(self, size):
         self.boxSize = size
