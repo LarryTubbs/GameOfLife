@@ -3,7 +3,6 @@
 from os import curdir
 from sys import flags
 from copy import deepcopy
-import time, threading
 
 import wx
 from wx.core import BoxSizer, CONTROL_CURRENT, FileDialogNameStr, PropagateOnce, RadioBoxNameStr, Size
