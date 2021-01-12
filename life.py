@@ -25,12 +25,12 @@ class MainFrame(wx.Frame):
         self.timer = wx.Timer(self, MainFrame.ID_TIMER)
 
         font = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT)
-
         font.SetPointSize(9)
-
+        
         vbox = wx.BoxSizer(wx.VERTICAL)
 
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+
         # square size
         st1 = wx.StaticText(self.panel, label='Square Size')
         st1.SetFont(font)
@@ -59,17 +59,19 @@ class MainFrame(wx.Frame):
 
         vbox.Add((-1, 10))
 
+        # main client area
         self.ca = ClientArea(parent=self.panel, size=(100,100))
         vbox.Add(self.ca, proportion=1, flag=wx.EXPAND | wx.ALL, border=0)
 
+        # status bar
         self.sb = wx.StatusBar(self.panel)
         self.sb.SetStatusText("Ready")
-        
         vbox.Add(self.sb, flag=wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, border=0)
 
         self.generation = 0
         self.speed = 1000
 
+        # bind all event handled by the main frame
         self.panel.Bind(wx.EVT_TEXT, self.onChangeBoxSize, self.tcBoxSize)
         self.panel.Bind(wx.EVT_LEFT_UP, self.onSquareClick, self.ca)
         self.panel.Bind(wx.EVT_BUTTON, self.onStartClick, startButton)
@@ -203,6 +205,7 @@ class ClientArea(wx.Panel):
 
     def CountNeighbors(self, y, x):
         c = 0
+        # ignoring IndexErrors that occurr around the edges of the world
         try:
             #upper left
             if self.currentGrid[y-1][x-1] == True:
